@@ -27,6 +27,10 @@ url: "https://theplatypus.github.io"
 repository: 'https://github.com/theplatypus/blog'
 default_branch: 'master'
 
+
+# The base URL of your site
+baseurl: '/blog'
+
 github:
   username: theplatypus # change to your github username
 
@@ -124,8 +128,6 @@ pwa:
 
 paginate: 10
 
-# The base URL of your site
-baseurl: '/blog'
 
 # ------------ The following options are not recommended to be modified ------------------
 
