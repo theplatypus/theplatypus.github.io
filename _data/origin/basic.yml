@@ -2,6 +2,10 @@
 
 webfonts: /assets/lib/fonts/main.css
 
+firacode:
+  css: /assets/lib/firacode/distr/fira_code.css
+
+
 # Libraries
 
 jquery:
