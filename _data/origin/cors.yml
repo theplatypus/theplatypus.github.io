@@ -15,6 +15,10 @@ cdns:
 
 webfonts: https://fonts.googleapis.com/css2?family=Lato&family=Source+Sans+Pro:wght@400;600;700;900&display=swap
 
+firacode:
+  css: https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.css
+
+
 # Libraries
 
 jquery:
