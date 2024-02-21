@@ -1,26 +1,28 @@
 ---
-title: Variable Selection with Lasso Regressor
+title: Feature selection with Lasso Regularization Path
 date: 2024-02-02 08:00:00 +0100
-categories: [Data Science, Variable Selection]
+categories: [Data Science, Feature Selection]
 tags: [feature, selection, criterion]     # TAG names should always be lowercase
 math: true
 ---
 
 
-## Introduction
+## In a nutshell
 
-In the vast expanse of data analysis, selecting the right set of variables for your model is akin to finding the most valuable pieces in a treasure chest
+Imagine you're a chef in a kitchen full of ingredients, some of which enhance your dish's flavor, while others might not blend well together or might even spoil the taste.
 
-Among various techniques, **Lasso regression** is my personal favorite:
+In the world of data analysis, this culinary challenge is akin to **feature selection** — the art of choosing the right set of ingredients (predictors) to make your model (dish) as predictive and understandable as possible. 
+
+Among various techniques to select features, **Lasso regularization path** is my personal favorite:
 
 - it has solid statistical foundations
+- we can base it on information criterions
 - it has a very visual interpretation
 
-This post delves into the concept of using a Lasso regressor to perform an **explainable** and **criterion based** variable selection. 
+> In this post we will see how to get an **explainable**, **criterion based** feature selection from a Lasso regressor, by incrementally decreasing its $$ l_1 $$ penalty
+{: .prompt-info }
 
-> TLDR; we will incrementally increase the $$ \lambda $$ penalty through what we call the **regularization path**.
-
-### What is Feature Selection and Why is it Important?
+## What is Feature Selection
 
 <!-- Without going to much in details here, let's introduce *Feature selection* as seeking the most relevant set of predictors for your model, which is the set that:
 
@@ -39,63 +41,156 @@ When you come across a "traditional" statistical modeling (regression/classifica
 - **Inclusion of Predictive Variables**: It consists of predictors that either independently or in combination with others, significantly explain variance in the target outcome.
 - **Exclusion of Redundant Variables**: It avoids predictors that are inter-correlated, known as having collinearity, which can distort the model's performance and interpretability.
 
-The importance of feature selection extends beyond mere model simplification. It directly prevents overfitting, ensuring the model's generalizability to unseen data. Moreover, by narrowing down the predictors to a core set, it enhances the model's interpretability. 
-If your primary goal is to understand and explain the foundational rules and relationships upon which the model operate, then you should definitely keep the black-box for a future step, when you will focus on accuracy.
+## Why is it Important?
 
-Despite its significance, feature selection often doesn't receive the attention it deserves in the modeling process, particularly in scenarios where data abundance might lead to a complacency of sorts. 
+The importance of feature selection extends beyond mere model simplification. It directly **prevents overfitting**, ensuring the model's generalizability to unseen data. Moreover, by narrowing down the predictors to a core set, it enhances the model's **interpretability**. 
 
-Consider the situation where the number of observations $$ n $$ exceeds the number of features $$ p $$ ; quite often $$ n >> p $$. The temptation might be to include all available features under the assumption that the modeling algorithm will autonomously discern the relevant from the irrelevant. Additionally, certain algorithms claim resilience against collinearity, further encouraging a laissez-faire approach to feature selection.
+Despite its significance, feature selection often doesn't receive the attention it deserves, particularly in scenarios where:
 
-However, this approach overlooks the nuanced benefits of a carefully curated feature set. Beyond improving model accuracy and reducing overfitting, intentional feature selection facilitates a deeper understanding of the underlying data relationships, i.e. business rules. 
+- **Data Abundance**: With more variables $$ p $$ than observations $$ n $$, it is tempting to keep all available data, hoping the model will sort it out. 
+
+- **Model Resilience**: Certain models claim to handle co-linearity well. While this might be true to an extent, relying solely on this capability can sometimes obscure the true relationships in your data.
+
+However, this may result in a suboptimal/overfitted model, particularly if it's the initial strategy employed. The benefits of a carefully curated feature set are significant. It not only aids in a deeper comprehension of the fundamental relationships within your data but also helps illuminate the core business principles guiding these interactions.
+
+> There is a time to understand data and build *explainable* models, and a time to build *accurate* models. 
+{: .prompt-tip }
 
 ## Lasso Regression
 
 ### The $$ \lambda $$ penalty 
 
-The [Lasso ](https://en.wikipedia.org/wiki/Lasso_(statistics)) (Least Absolute Shrinkage and Selection Operator) is a type of linear regression, that notably uses a regularization term in the form of a $$ l1 $$ penalty. (i.e. euclidian norm)
+The [Lasso ](https://en.wikipedia.org/wiki/Lasso_(statistics)) (Least Absolute Shrinkage and Selection Operator) is a type of linear regression, that notably uses a regularization term in the form of a $$ l_1 $$ penalty. (i.e. euclidian norm).
+
+Lasso objective is to solve
 
 $$
 
-\text{minimize} 
+ \underset{\beta_0, \beta}{\text{min}} \Bigl\{ \sum_{i=1}^{n}(y_i - \beta_0 - x_i^T\beta)^2 \Bigr\}, \text{with} \sum_{j=1}^{p}| \beta_j| \leq \lambda
 
 $$
 
-It means that it has to adapt its coefficients $$ \beta $$ to minimize the square of the residual errors, *but under the additional constraint* that the sum of coefficients absolute value must not exceed a fixed limit $$ \lambda $$ (noted  $$ t $$ in the original paper). 
+With
+- $$ y $$ the outcome vector (values to predict)
+- $$ x $$ the feature vector (features available)
+- $$ \beta_0 $$ the intercept
+- $$ \beta=(\beta_1, \ldots, \beta_p) $$ coefficients associated with each feature
+- we can denote $$ \hat{y} = \beta_0 - x^T\beta $$ the predicted values
 
-This approach not only helps in reducing overfitting but also performs variable selection.
+It means that it has to adapt its coefficients $$ \beta $$ to minimize the square of the residual errors $$ (y - \hat{y})^2 $$, *but under the additional constraint* that the sum of coefficients absolute value must not exceed a fixed and arbitrary limit $$ \lambda $$ (sometimes noted  $$ t $$). 
+
+> Consider that your target and features are scaled to the same interval at this point
+{: .prompt-info }
+
+Basically, you are not asking your model to accurately predict $$ y $$ anymore (it won't), the objective is now more:
+
+> "If you were to get stranded on a deserted island, with a backpack of size $$ f(\lambda) $$, what features are you bringing with you?"
+
+### Understanding the Impact of Lambda
+
+**Low Lambda**: A smaller $$ \lambda $$ increases the penalty, leading to more coefficients being shrunk to zero. This simplifies the model but may also lead to underfitting.
+
+**High Lambda**: A larger $$ \lambda $$ means less penalty on the coefficients. This can lead to a model similar to a standard linear regression, potentially causing overfitting if there are many predictors.
+
+> Think of it as a **feature budget** you are giving to the Lasso.
+{: .prompt-tip }
 
 ### Navigating the Path of Regularization
 
-The regularization path is a crucial concept in Lasso regression. It involves gradually changing the value of the regularization parameter (lambda) and observing how this affects the model coefficients. As lambda increases, more coefficients are driven to zero, effectively eliminating variables from the model.
+The regularization path consists in gradually changing the value of the regularization parameter $$ \lambda $$ and observing how this affects the model coefficients. As $$ \lambda $$ increases, more coefficients are driven to zero, effectively eliminating variables from the model.
 
 > But, my model will perform more and more badly, right?
 
 Right! And quite frankly, we do not really care on how bad it will actually perform at the end. We are giving more interest to the **coefficients variation** at this time. 
 
-Anyway, remember our Lasso is _just_ a linear model that will very likely not compete with non-linear, robust estimators like a Random Forest. But we are using it for a task for which it will give us very valuable insights: **Variable Selection**
-
-### Understanding the Impact of Lambda
-
-**Low Lambda**: A smaller lambda means less penalty on the coefficients. This can lead to a model similar to a standard linear regression, potentially causing overfitting if there are many predictors.
-
-**High Lambda**: A larger lambda increases the penalty, leading to more coefficients being shrunk to zero. This simplifies the model but may also lead to underfitting.
+Anyway, remember our Lasso is _just_ a linear model that will very likely not compete with non-linear, robust estimators like a Random Forest. That is not our goal at the moment.
 
 ## Choosing the Right Lambda
 
-When fine-tuning the lambda in Lasso regression, information criteria such as Akaike’s Information Criterion (AIC) and the Bayesian Information Criterion (BIC) play a pivotal role. Both AIC and BIC are rooted in the principles of likelihood, which measures how well a model fits the data. AIC and BIC differ mainly in their penalty terms; AIC penalizes the complexity less harshly than BIC, making BIC more stringent about model simplicity.
+One of the primary advantages of utilizing a parameterized estimator like Lasso regression, as opposed to ensemble methods, lies in its capability to straightforwardly estimate the model's likelihood. 
 
-In the context of Lasso regression, these criteria help in striking a balance between model complexity and goodness of fit. Lower values of AIC or BIC indicate a better model choice. The likelihood component of these criteria assesses how probable it is that the model could have produced the observed data. This is particularly relevant because Lasso regression, by adjusting lambda, can greatly vary the number of variables included in the model. A higher likelihood indicates that the model, with its current set of variables, makes the observed data more probable.
+> The likelihood of an estimator is essentially the probability of observing the given data under the assumed model, as a function of the model parameters.
+{: .prompt-info }
 
-The true power of using AIC/BIC in conjunction with Lasso lies in their ability to guide the selection of lambda towards a model that is complex enough to capture the underlying patterns in the data, yet simple enough to avoid overfitting. By minimizing AIC or BIC, one can find an optimal lambda that achieves this balance. This approach integrates the robustness of Lasso in handling high-dimensional data with the statistical rigor of information criteria, leading to more reliable and interpretable models.
+This feature grants direct access to powerful tools known as information criteria, specifically **Akaike’s Information Criterion (AIC)** and the **Bayesian Information Criterion (BIC)**. They differ mainly in their penalty terms; AIC penalizes the complexity less harshly than BIC, making BIC more stringent about model simplicity.
+
+In the context of Lasso regression, these criteria help in striking a balance between model complexity and goodness of fit. Lower values of AIC or BIC indicate a better model choice. The likelihood component of these criteria assesses how probable it is that the model could have produced the observed data. 
+
+The true power of using AIC/BIC in conjunction with Lasso lies in their ability to guide the selection of lambda towards a model that is complex enough to capture the underlying patterns in the data, yet simple enough to avoid overfitting. 
+
+> By minimizing AIC or BIC, one can find an optimal lambda that achieves this balance.
+{: .prompt-tip }
+
+## Examples
+
+Before going into the code, let's illustrate what we explain before with some example datasets.
+
+### Wine Quality
+
+Let's begin with a straightforward example with the [Wine Quality Dataset (red subset)](https://www.kaggle.com/datasets/yasserh/wine-quality-dataset).
+The goal is to predict a wine quality, given some chemical properties. All features and target are purely numerical, so there is no need of processing data beyond a scaling.
+
+On the first subplot, we plot the regularization path that each features follows, starting from the most simple (restricted) model (left) to the least (right). The final model is basically a standard linear model.
+
+On the second one, we plot the evolution of information criteria for the estimator obtained at that level of regularization, along with the $$ R^2 $$ criterion and its adjusted variant.
+
+![Desktop View](/assets/img/posts/lasso/red_wine.png){: width="972" height="589" }
+
+What we can say here is that `alcolhol` has a clear, massive positive influence, while on the contrary `volatile_acidity` is its negative counterpart. Then `sulphates` and `total sulfur dioxide` come into consideration to a lesser extent. `fixed_acidity` is picked, but discarded soon after as `pH` probably holds the same information.
+
+BIC criterion admits `free_sulfur_dioxyde` before closing the feature set, while AIC takes additionnally `residual_sugar`. Other features are not considered to enrich the model.
+
+Be precautious, as our $$ R^2 `simeq 0.35 $$, which is quite bad while already explaining some of the variance. Some additional feature engineering might be the next step!
+
+### Cars comsumption
+
+The goal in this [Auto MPG](https://archive.ics.uci.edu/dataset/9/auto+mpg) dataset is to predict a car consumption (miles per gallon).
+
+The difficulty is to deal with some features that are not continuous but discrete:
+
+- `year`, that we however treat as ordinal, becoming more a `model_youth` feature
+- `cylinders` is treated as ordinal as well, actually I do not see the caveat in considering it continuous 
+- `origin`, that we can treat with one-hot encoding, becoming three distinct features
+
+![Desktop View](/assets/img/posts/lasso/cars.png){: width="972" height="589" }
+
+Good to observe that you reach the same accuracy with 5/9 of available features, discarding three original features. The selected model is actually pretty good with a $$ R^2 \simeq 0.80 $$, indicating that a linear model might be a good approach.
+
+### Diabetes
+
+As a last example, we take the [diabetes](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_diabetes.html) regression dataset from scikit-learn, that depicts the evolution of diabete disease.
+
+```python
+from sklearn import datasets
+
+X, y = datasets.load_diabetes(return_X_y=True, as_frame=True)
+
+X.columns = [ 'age', 'sex', 'body mass index', 'blood pressure', 'cholesterol', 'low-density lipoproteins','high-density lipoproteins', 'cholesterol/HDL', 'triglycerides', 'blood sugar level']
+
+rng = np.random.RandomState(42)
+n_random_features = 4
+X_random = pd.DataFrame(
+	rng.randn(X.shape[0], n_random_features),
+	columns=[f"random_{i:02d}" for i in range(n_random_features)],
+)
+X = pd.concat([X, X_random], axis=1)
+```
+
+To add a difficulty, we generated 4 random features that do not explain any variance on the target.
+
+![Desktop View](/assets/img/posts/lasso/diabetes.png){: width="972" height="589" }
+
+Five features (`body mass index`, `triglycerides`, `blood pressure`, `high density lipoproteins` and `sex`) stand out significantly in this analysis, being by the magnitude of their respective coefficients and the fact that they are identified individually rather than as part of a large group of variables.
+
+Moreover, the BIC criterion, known for its stricter selection process, exclusively retains these variables. Unlike AIC, which can sometimes incorporate arbitrary features, BIC effectively avoids this pitfall.
 
 ## Lasso Regression in Practice: A Step-by-Step Guide
 
-Data Preparation: Begin with standardizing your data. Lasso is sensitive to the scale of input variables.
-Model Building: Implement Lasso regression using libraries in R (like glmnet) or Python (such as scikit-learn).
-Regularization Path Analysis: Plot the path of coefficients against different lambda values to observe how variable selection evolves.
-Optimal Lambda Selection: Use cross-validation to find the lambda that minimizes the prediction error.
-Interpreting the Results: Analyze the final model, focusing on the variables that survived the regularization process.
-Advantages of Using Lasso for Variable Selection
+- Data Preparation: Begin with standardizing your data. Lasso makes no sense if features are of different orders of magnitude
+- Model Building: Implement Lasso regression using libraries in R (like glmnet) or Python (such as scikit-learn).
+- Regularization Path Analysis: Plot the path of coefficients against different lambda values to observe how variable selection evolves.
+- Optimal Lambda Selection: Use argmin of AIC/BIC to find the best set a features
+- Interpreting the Results: Analyze the final model, focusing on the variables that survived the regularization process.
 
 
 ### Hands-on with `scikit-learn`
@@ -183,24 +278,22 @@ def regularization_path(X, y, feature_names, model = 'lasso', scale = False, l1_
 			cols are coefs affected to respective X for that model
 
 	Example :
-	from sklearn import datasets
+from sklearn import datasets
 
-	#diabetes = datasets.load_diabetes()
-	#X = diabetes.data
-	#y = diabetes.target 
+X, y = datasets.load_diabetes(return_X_y=True, as_frame=True)
 
-	X, y = datasets.load_diabetes(return_X_y=True, as_frame=True)
+rng = np.random.RandomState(42)
+n_random_features = 4
+X.columns = [ 'age', 'sex', 'body mass index', 'blood pressure', 'cholesterol', 'low-density lipoproteins','high-density lipoproteins', 'cholesterol/HDL', 'triglycerides', 'blood sugar level']
+X_random = pd.DataFrame(
+	rng.randn(X.shape[0], n_random_features),
+	columns=[f"random_{i:02d}" for i in range(n_random_features)],
+)
+X = pd.concat([X, X_random], axis=1)
 
-	rng = np.random.RandomState(42)
-	n_random_features = 4
-	X_random = pd.DataFrame(
-		rng.randn(X.shape[0], n_random_features),
-		columns=[f"random_{i:02d}" for i in range(n_random_features)],
-	)
-	X = pd.concat([X, X_random], axis=1)
-	feature_names = list(X.columns) # feature_names = df.columns 
+feature_names = list(X.columns) # feature_names = df.columns 
 
-	df_model, df_criterion = regularization_path(X, y, feature_names, model = 'lasso', scale = True)
+df_model, df_criterion = regularization_path(X, y, feature_names, model = 'lasso', scale = True)
 
 	 df_reg
 	   alpha	   age		sex		bmi		 bp		 s1		s2		s3		s4		 s5		s6
@@ -238,7 +331,7 @@ def regularization_path(X, y, feature_names, model = 'lasso', scale = False, l1_
 		neg_log_alphas = -np.log10(alphas)
 	
 	if plot : 
-		fig, (ax1, ax2) = plt.subplots(2, 1, sharex = True, figsize=(20, 8))
+		fig, (ax1, ax2) = plt.subplots(2, 1, sharex = True, height_ratios = [.75, .25], figsize=(20, 8))
 		ax1.set_xlabel("-Log(alpha)")
 		ax1.set_ylabel("coefficients")
 		ax1.set_title("Lasso Paths" if model == 'lasso' else "Elastic Net Paths")
@@ -354,15 +447,5 @@ def regularization_path(X, y, feature_names, model = 'lasso', scale = False, l1_
 
 	return df_reg, df_criterion
 ```
-
-### Hands-on with `Orange Data-mining`
-
-Simplicity: Lasso helps in creating simpler models that may generalize better.
-Automatic Variable Selection: It conveniently eliminates unimportant variables.
-Multicollinearity Handling: Lasso can handle multicollinearity in data by keeping only one of the correlated variables.
-Conclusion
-
-Lasso regression, with its unique regularization path, offers a robust approach to variable selection. By understanding and implementing this technique, you can enhance your model's predictive power and interpretability, making your analysis both effective and efficient.
-
 
 
