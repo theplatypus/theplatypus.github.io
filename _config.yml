@@ -24,12 +24,12 @@ description: >- # used by seo meta and the atom feed
 # Fill in the protocol & hostname for your site.
 # e.g. 'https://username.github.io', note that it does not end with a '/'.
 url: "https://theplatypus.github.io"
-repository: 'https://github.com/theplatypus/blog'
+repository: 'https://github.com/theplatypus/theplatypus.github.io'
 default_branch: 'master'
 
 
 # The base URL of your site
-baseurl: '/blog'
+baseurl:
 
 github:
   username: theplatypus # change to your github username
