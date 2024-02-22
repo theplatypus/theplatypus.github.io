@@ -25,7 +25,7 @@ A canonization algorithm working on fully labeled graphs (vertices and edges), p
  - a canonical trace (string)
  - a canonical adjacency matrix
 
-![Scott example](https://raw.githubusercontent.com/theplatypus/theplatypus.github.io/master/assets/img/steps.svg?sanitize=true)
+![Scott example](https://raw.githubusercontent.com/theplatypus/scott/master/docs/img/steps.svg?sanitize=true)
 
 Applications :
 
