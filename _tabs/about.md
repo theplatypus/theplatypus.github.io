@@ -8,7 +8,9 @@ order: 1
 
 ## Welcome to my personal page
 
-Hi, I'm Nicolas, a Data Engineer and Scientist with a PhD in Computer Science, living in the lovely town of Morlaix in Brittany. My professional path has been driven by a keen interest in understanding and solving complex data-related challenges.
+Hi, I'm Nicolas, a Data Engineer/Scientist, PhD in Computer Science, living near the lovely town of Morlaix in Brittany. 
+
+My professional path has been driven by a keen interest in understanding and solving complex data-related challenges.
 
 ### What I'm Passionate About
 
@@ -37,9 +39,9 @@ Did you know that graph are so versatile that their generalization (hypergraphs)
 #### Hobbies
 
 Outside of data and coding, I have a few hobbies:
-- **Photography**: See [mine](https://theplatypus.myportfolio.com/)
+- **Photography**: See [mine](https://theplatypus.myportfolio.com/). I enjoy playing with old manual lenses on DSLR camera.
 - **Piano**: Playing music is a wonderful escape of my work.
-- **Magic: The Gathering**: Easy to learn, impossible to master.
+- **Magic: The Gathering**: Easy to learn, quite impossible to master.
 - **Running**: Proud marathonian.
 
 

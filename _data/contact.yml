@@ -22,9 +22,9 @@
 #   icon: 'fab fa-dblp'
 #   url: https://dblp.uni-trier.de/pid/234/5947.html
 
-# - type: orcid
-#   icon: 'fab fa-orcid'
-#   url: https://orcid.org/0000-0003-0982-8907
+- type: orcid
+  icon: 'fab fa-orcid'
+  url: https://orcid.org/0000-0003-0982-8907
 
 # - type: email
 #   icon: "fas fa-envelope"
