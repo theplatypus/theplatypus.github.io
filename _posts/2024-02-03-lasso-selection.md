@@ -1,7 +1,7 @@
 ---
 title: Feature selection with Lasso Regularization Path
 date: 2024-02-02 08:00:00 +0100
-categories: [Data Science, Feature Selection]
+categories: [Data Science, Model Evaluation & Selection]
 tags: [feature, selection, criterion]     # TAG names should always be lowercase
 math: true
 ---
@@ -134,7 +134,7 @@ On the first subplot, we plot the regularization path that each features follows
 
 On the second one, we plot the evolution of information criteria for the estimator obtained at that level of regularization, along with the $$ R^2 $$ criterion and its adjusted variant.
 
-![Desktop View](/assets/img/posts/lasso/red_wine.png){: width="972" height="589" }
+![Desktop View](/img/posts/lasso/red_wine.png){: width="972" height="589" }
 
 What we can say here is that `alcolhol` has a clear, massive positive influence, while on the contrary `volatile_acidity` is its negative counterpart. Then `sulphates` and `total sulfur dioxide` come into consideration to a lesser extent. `fixed_acidity` is picked, but discarded soon after as `pH` probably holds the same information.
 
@@ -144,7 +144,7 @@ Be precautious, as our $$ R^2 `simeq 0.35 $$, which is quite bad while already e
 
 ### Cars comsumption
 
-The goal in this [Auto MPG](https://archive.ics.uci.edu/dataset/9/auto+mpg) dataset is to predict a car consumption (miles per gallon).
+The goal in this [Auto MPG](https://archive.ics.uci.edu/dataset/9/auto+mpg) dataset is to predict a car consumption (miles per gallon).purely numeric
 
 The difficulty is to deal with some features that are not continuous but discrete:
 
@@ -152,7 +152,7 @@ The difficulty is to deal with some features that are not continuous but discret
 - `cylinders` is treated as ordinal as well, actually I do not see the caveat in considering it continuous 
 - `origin`, that we can treat with one-hot encoding, becoming three distinct features
 
-![Desktop View](/assets/img/posts/lasso/cars.png){: width="972" height="589" }
+![Desktop View](/img/posts/lasso/cars.png){: width="972" height="589" }
 
 Good to observe that you reach the same accuracy with 5/9 of available features, discarding three original features. The selected model is actually pretty good with a $$ R^2 \simeq 0.80 $$, indicating that a linear model might be a good approach.
 
@@ -178,7 +178,7 @@ X = pd.concat([X, X_random], axis=1)
 
 To add a difficulty, we generated 4 random features that do not explain any variance on the target.
 
-![Desktop View](/assets/img/posts/lasso/diabetes.png){: width="972" height="589" }
+![Desktop View](/img/posts/lasso/diabetes.png){: width="972" height="589" }
 
 Five features (`body mass index`, `triglycerides`, `blood pressure`, `high density lipoproteins` and `sex`) stand out significantly in this analysis, being by the magnitude of their respective coefficients and the fact that they are identified individually rather than as part of a large group of variables.
 
